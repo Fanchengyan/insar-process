@@ -10,7 +10,8 @@ def mapper_date_data(folder, suffix):
     Select the data files from the folder,and then return 
     a mapper from year to data file
     '''
-    files_s1 = [i for i in os.listdir(folder) if i.split('.')[-1] == suffix]
+    files_s1 = sorted([i for i in os.listdir(folder)
+                      if i.split('.')[-1] == suffix])
     dates = [i[17:25] for i in files_s1]
     mapper = dict()
     for i, date in enumerate(dates):
@@ -21,56 +22,59 @@ def mapper_date_data(folder, suffix):
 def day_interval(date_start, date_end):
     date_start = datetime.strptime(date_start, '%Y%m%d')
     date_end = datetime.strptime(date_end, '%Y%m%d')
-    interval = date_end - date_start
+    interval = (date_end - date_start).days
 
-    return interval.days
+    return interval
 
 
-def export_master_slaves_file(dates, distance_time_interval=2, max_day_interval=180, path_out=None, delimiter='\t'):
-    '''导出干涉对文件。
-    Generate and save a master-slave pair automatically. Time interval 
-    of master-slave pair is 1 and 2
+def generate_interferogram_pairs(sar_dir,  pair_file, sar_suffix='zip',
+                                 max_interval=2, max_day=180, delimiter=','):
+    '''generate interferogram pairs to a file
+    Generate and save a reference-secondary pair automatically. Time interval 
+    of reference-secondary pair is 1 and 2
 
+    Parameters:
+    -----------
     dates: str 
         date string with format of '%Y%m%d'
-    distance_time_interval: int
-        干涉对时间间隔距离，相邻时间间隔距离为1
-    max_day_interval：int
+    max_interval: int
+        干涉对最大相邻获取间隔, 相邻间隔为1
+    max_day:int
         干涉对最大的间隔天数
-    path_out: str
+    pair_file: str
         the path of file out.if None, will not save. 
     delimiter: str
-        master与slave日期之间的分割符号
+        reference与secondary日期之间的分割符号
     '''
-    dates.sort()
+    mapper = mapper_date_data(sar_dir, suffix=sar_suffix)
+    dates = sorted(mapper.keys())
 
     num = len(dates)
-    master_slave_pair_list = []
+    reference_secondary_pair_list = []
     for i, date in enumerate(dates):
         dti_temp = 1
-        while dti_temp <= distance_time_interval:
+        while dti_temp <= max_interval:
             if i + dti_temp < num:
-                if day_interval(date, dates[i + dti_temp]) < max_day_interval:
-                    master_slave_pair_list.append([date, dates[i + dti_temp]])
+                if day_interval(date, dates[i + dti_temp]) < max_day:
+                    reference_secondary_pair_list.append(
+                        [date, dates[i + dti_temp]])
                     dti_temp += 1
                 else:
                     break
             else:
                 break
 
-    with open(path_out, 'w', newline='') as f:
+    with open(pair_file, 'w', newline='') as f:
         csv_writer = csv.writer(f, delimiter=delimiter)
-        csv_writer.writerows(master_slave_pair_list)
+        csv_writer.writerows(reference_secondary_pair_list)
 
 
 if __name__ == "__main__":
-    # 存放insar的文件夹
-    path_data = r'F:\DaTong River'
-    # 存放干涉对时间序列的文件路径
-    path_out = './mater_slave.list'
+    # the folder contains the SAR data
+    sar_dir = r'F:\DaTong River'
 
-    mapper = mapper_date_data(path_data, suffix='zip')
-    dates = list(mapper.keys())
+    # the file to save the pairs
+    pair_file = './ifg_pairs.csv'
 
-    export_master_slaves_file(dates, distance_time_interval=5,
-                              max_day_interval=180, path_out=path_out, delimiter='\t')
+    generate_interferogram_pairs(sar_dir, pair_file, sar_suffix='zip',
+                                 max_interval=3, max_day=180, delimiter=',')
