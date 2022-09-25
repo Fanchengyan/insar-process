@@ -57,7 +57,7 @@ for file in tqdm(ifgs_files, desc='link files'):
             os.system(ref_cmd)
 
             ####################################################################
-            #     multi-looking for geo_info files to 'geom_reference' folder
+            #     multi-looking geo_info files into 'geom_reference' folder
             #####################################################################
             # For the files that contain the geo info of ifgs, only 'los' was 
             # processed well (multi-looked and with '.rdr' format). We need 
