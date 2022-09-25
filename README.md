@@ -1,3 +1,3 @@
 # insar-process
 
-Some scripts processing the InSAR
+Some scripts for processing InSAR
