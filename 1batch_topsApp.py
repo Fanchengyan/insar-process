@@ -180,6 +180,6 @@ for i, ifg in enumerate(tqdm(ifg_pairs)):
     os.system(cmd_link)
 
     # execute topsApp.py
-    cmd_tops = f'topsApp.py {xml_file}'
+    cmd_tops = f'topsApp.py {xml_file} --start=startup'
     logger.info(cmd_tops)
     os.system(cmd_tops)
